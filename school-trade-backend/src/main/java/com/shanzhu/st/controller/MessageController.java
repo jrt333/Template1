@@ -34,11 +34,12 @@ public class MessageController {
      */
     @PostMapping("/send")
     public R sendMessage(
-            @CookieValue("shUserId")
-            @NotNull(message = "登录异常 请重新登录")
-            @NotEmpty(message = "登录异常 请重新登录") String shUserId,
+            @CookieValue(value = "shUserId", defaultValue = "") String shUserId,
             @RequestBody Message message
     ) {
+        if (shUserId.isEmpty()) {
+            return R.fail(ErrorMsg.COOKIE_ERROR);
+        }
         message.setUserId(Long.valueOf(shUserId));
         message.setCreateTime(new Date());
         if (messageService.addMessage(message)) {
@@ -77,10 +78,11 @@ public class MessageController {
      */
     @GetMapping("/my")
     public R getAllMyMessage(
-            @CookieValue("shUserId")
-            @NotNull(message = "登录异常 请重新登录")
-            @NotEmpty(message = "登录异常 请重新登录") String shUserId
+            @CookieValue(value = "shUserId", defaultValue = "") String shUserId
     ) {
+        if (shUserId.isEmpty()) {
+            return R.fail(ErrorMsg.COOKIE_ERROR);
+        }
         return R.success(messageService.getAllMyMessage(Long.valueOf(shUserId)));
     }
 
@@ -92,10 +94,12 @@ public class MessageController {
      */
     @GetMapping("/delete")
     public R deleteMessage(
-            @CookieValue("shUserId")
-            @NotNull(message = "登录异常 请重新登录")
+            @CookieValue(value = "shUserId", defaultValue = "") String shUserId,
             @RequestParam Long id
     ) {
+        if (shUserId.isEmpty()) {
+            return R.fail(ErrorMsg.COOKIE_ERROR);
+        }
         if (messageService.deleteMessage(id)) {
             return R.success();
         }

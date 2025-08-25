@@ -114,10 +114,11 @@ public class UserController {
      */
     @RequestMapping("logout")
     public R logout(
-            @CookieValue("shUserId")
-            @NotNull(message = "登录异常 请重新登录")
-            @NotEmpty(message = "登录异常 请重新登录") String shUserId, HttpServletResponse response
+            @CookieValue(value = "shUserId", defaultValue = "") String shUserId, HttpServletResponse response
     ) {
+        if (shUserId.isEmpty()) {
+            return R.fail(ErrorMsg.COOKIE_ERROR);
+        }
         Cookie cookie = new Cookie("shUserId", shUserId);
         cookie.setMaxAge(0);
         cookie.setPath("/");
@@ -134,10 +135,11 @@ public class UserController {
      */
     @GetMapping("info")
     public R getOneUser(
-            @CookieValue("shUserId") @NotNull(message = "登录异常 请重新登录")
-            @NotEmpty(message = "登录异常 请重新登录")
-            String id
+            @CookieValue(value = "shUserId", defaultValue = "") String id
     ) {
+        if (id.isEmpty()) {
+            return R.fail(ErrorMsg.COOKIE_ERROR);
+        }
         return R.success(userService.getUser(Long.valueOf(id)));
     }
 
@@ -149,9 +151,10 @@ public class UserController {
      * @return 修改结果
      */
     @PostMapping("/info")
-    public R updateUserPublicInfo(@CookieValue("shUserId") @NotNull(message = "登录异常 请重新登录")
-                                  @NotEmpty(message = "登录异常 请重新登录")
-                                  String id, @RequestBody User user) {
+    public R updateUserPublicInfo(@CookieValue(value = "shUserId", defaultValue = "") String id, @RequestBody User user) {
+        if (id.isEmpty()) {
+            return R.fail(ErrorMsg.COOKIE_ERROR);
+        }
         user.setId(Long.valueOf(id));
         if (userService.updateUserInfo(user)) {
             return R.success();
@@ -170,10 +173,12 @@ public class UserController {
      */
     @GetMapping("/password")
     public R updateUserPassword(
-            @CookieValue("shUserId") @NotNull(message = "登录异常 请重新登录")
-            @NotEmpty(message = "登录异常 请重新登录") String id,
+            @CookieValue(value = "shUserId", defaultValue = "") String id,
             @RequestParam("oldPassword") @NotEmpty @NotNull String oldPassword,
             @RequestParam("newPassword") @NotEmpty @NotNull String newPassword) {
+        if (id.isEmpty()) {
+            return R.fail(ErrorMsg.COOKIE_ERROR);
+        }
         if (userService.updatePassword(newPassword, oldPassword, Long.valueOf(id))
         ) {
             return R.success();

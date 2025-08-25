@@ -33,11 +33,13 @@ public class AddressController {
      */
     @GetMapping("/info")
     public R getAddress(
-            @CookieValue("shUserId")
-            @NotNull(message = "登录异常 请重新登录")
-            @NotEmpty(message = "登录异常 请重新登录") String shUserId,
+            @CookieValue(value = "shUserId", defaultValue = "") String shUserId,
             @RequestParam(value = "id", required = false) Long id
+
     ) {
+        if (shUserId.isEmpty()) {
+            return R.fail(ErrorMsg.COOKIE_ERROR);
+        }
         if (null == id) {
             return R.success(addressService.getAddressByUser(Long.valueOf(shUserId)));
         } else {
@@ -54,11 +56,12 @@ public class AddressController {
      */
     @PostMapping("/add")
     public R addAddress(
-            @CookieValue("shUserId")
-            @NotNull(message = "登录异常 请重新登录")
-            @NotEmpty(message = "登录异常 请重新登录") String shUserId,
+            @CookieValue(value = "shUserId", defaultValue = "") String shUserId,
             @RequestBody Address address
     ) {
+        if (shUserId.isEmpty()) {
+            return R.fail(ErrorMsg.COOKIE_ERROR);
+        }
         address.setUserId(Long.valueOf(shUserId));
         if (addressService.addAddress(address)) {
             return R.success(address);
@@ -75,11 +78,12 @@ public class AddressController {
      */
     @PostMapping("/update")
     public R updateAddress(
-            @CookieValue("shUserId")
-            @NotNull(message = "登录异常 请重新登录")
-            @NotEmpty(message = "登录异常 请重新登录") String shUserId,
+            @CookieValue(value = "shUserId", defaultValue = "") String shUserId,
             @RequestBody Address address
     ) {
+        if (shUserId.isEmpty()) {
+            return R.fail(ErrorMsg.COOKIE_ERROR);
+        }
         address.setUserId(Long.valueOf(shUserId));
         if (addressService.updateAddress(address)) {
             return R.success();
@@ -96,11 +100,12 @@ public class AddressController {
      */
     @PostMapping("/delete")
     public R deleteAddress(
-            @CookieValue("shUserId")
-            @NotNull(message = "登录异常 请重新登录")
-            @NotEmpty(message = "登录异常 请重新登录") String shUserId,
+            @CookieValue(value = "shUserId", defaultValue = "") String shUserId,
             @RequestBody Address address
     ) {
+        if (shUserId.isEmpty()) {
+            return R.fail(ErrorMsg.COOKIE_ERROR);
+        }
         address.setUserId(Long.valueOf(shUserId));
         if (addressService.deleteAddress(address)) {
             return R.success();

@@ -35,11 +35,12 @@ public class FavoriteController {
      */
     @PostMapping("/add")
     public R addFavorite(
-            @CookieValue("shUserId")
-            @NotNull(message = "登录异常 请重新登录")
-            @NotEmpty(message = "登录异常 请重新登录") String shUserId,
+            @CookieValue(value = "shUserId", defaultValue = "") String shUserId,
             @RequestBody Favorite favorite
     ) {
+        if (shUserId.isEmpty()) {
+            return R.fail(ErrorMsg.COOKIE_ERROR);
+        }
         favorite.setUserId(Long.valueOf(shUserId));
         favorite.setCreateTime(new Date());
         if (favoriteService.addFavorite(favorite)) {
@@ -56,10 +57,12 @@ public class FavoriteController {
      */
     @GetMapping("/delete")
     public R deleteFavorite(
-            @CookieValue("shUserId")
-            @NotNull(message = "登录异常 请重新登录")
+            @CookieValue(value = "shUserId", defaultValue = "") String shUserId,
             @RequestParam Long id
     ) {
+        if (shUserId.isEmpty()) {
+            return R.fail(ErrorMsg.COOKIE_ERROR);
+        }
         if (favoriteService.deleteFavorite(id)) {
             return R.success();
         }
@@ -75,11 +78,12 @@ public class FavoriteController {
      */
     @GetMapping("/check")
     public R checkFavorite(
-            @CookieValue("shUserId")
-            @NotNull(message = "登录异常 请重新登录")
-            @NotEmpty(message = "登录异常 请重新登录") String shUserId,
+            @CookieValue(value = "shUserId", defaultValue = "") String shUserId,
             @RequestParam Long idleId
     ) {
+        if (shUserId.isEmpty()) {
+            return R.fail(ErrorMsg.COOKIE_ERROR);
+        }
         return R.success(favoriteService.isFavorite(Long.valueOf(shUserId), idleId));
     }
 
@@ -91,10 +95,11 @@ public class FavoriteController {
      */
     @GetMapping("/my")
     public R getMyFavorite(
-            @CookieValue("shUserId")
-            @NotNull(message = "登录异常 请重新登录")
-            @NotEmpty(message = "登录异常 请重新登录") String shUserId
+            @CookieValue(value = "shUserId", defaultValue = "") String shUserId
     ) {
+        if (shUserId.isEmpty()) {
+            return R.fail(ErrorMsg.COOKIE_ERROR);
+        }
         return R.success(favoriteService.getAllFavorite(Long.valueOf(shUserId)));
     }
 }

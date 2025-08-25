@@ -31,6 +31,12 @@ public class MailConfig {
         p.put("mail.smtp.starttls.required", "true");
         p.put("mail.smtp.ssl.protocols", "TLSv1.2");
         s.setJavaMailProperties(p);
+        p.put("mail.debug", "true");                 // ← 打印 SMTP 会话细节
+        p.put("mail.smtp.auth", "true");
+        p.put("mail.smtp.starttls.enable", "true");
+        p.put("mail.smtp.starttls.required", "true");
+        p.put("mail.smtp.ssl.protocols", "TLSv1.2");
+
 
         return s;
     }

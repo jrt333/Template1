@@ -31,10 +31,12 @@ public class OrderAddressController {
      */
     @PostMapping("/add")
     public R addOrderAddress(
-            @CookieValue("shUserId")
-            @NotNull(message = "登录异常 请重新登录")
+            @CookieValue(value = "shUserId", defaultValue = "") String shUserId,
             @RequestBody OrderAddress orderAddress
     ) {
+        if (shUserId.isEmpty()) {
+            return R.fail(ErrorMsg.COOKIE_ERROR);
+        }
         return R.success(orderAddressService.addOrderAddress(orderAddress));
     }
 
@@ -46,10 +48,12 @@ public class OrderAddressController {
      */
     @PostMapping("/update")
     public R updateOrderAddress(
-            @CookieValue("shUserId")
-            @NotNull(message = "登录异常 请重新登录")
+            @CookieValue(value = "shUserId", defaultValue = "") String shUserId,
             @RequestBody OrderAddress orderAddress
     ) {
+        if (shUserId.isEmpty()) {
+            return R.fail(ErrorMsg.COOKIE_ERROR);
+        }
         if (orderAddressService.updateOrderAddress(orderAddress)) {
             return R.success(orderAddress);
         }
@@ -64,10 +68,12 @@ public class OrderAddressController {
      */
     @GetMapping("/info")
     public R getOrderAddress(
-            @CookieValue("shUserId")
-            @NotNull(message = "登录异常 请重新登录")
+            @CookieValue(value = "shUserId", defaultValue = "") String shUserId,
             @RequestParam Long orderId
     ) {
+        if (shUserId.isEmpty()) {
+            return R.fail(ErrorMsg.COOKIE_ERROR);
+        }
         return R.success(orderAddressService.getOrderAddress(orderId));
     }
 }

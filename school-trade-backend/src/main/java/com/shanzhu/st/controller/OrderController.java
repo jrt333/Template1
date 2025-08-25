@@ -36,11 +36,12 @@ public class OrderController {
      */
     @PostMapping("/add")
     public R addOrder(
-            @CookieValue("shUserId")
-            @NotNull(message = "登录异常 请重新登录")
-            @NotEmpty(message = "登录异常 请重新登录") String shUserId,
+            @CookieValue(value = "shUserId", defaultValue = "") String shUserId,
             @RequestBody Order order
     ) {
+        if (shUserId.isEmpty()) {
+            return R.fail(ErrorMsg.COOKIE_ERROR);
+        }
         if (OrderTaskHandler.orderService == null) {
             OrderTaskHandler.orderService = orderService;
         }
@@ -64,11 +65,12 @@ public class OrderController {
      */
     @GetMapping("/info")
     public R getOrderInfo(
-            @CookieValue("shUserId")
-            @NotNull(message = "登录异常 请重新登录")
-            @NotEmpty(message = "登录异常 请重新登录") String shUserId,
+            @CookieValue(value = "shUserId", defaultValue = "") String shUserId,
             @RequestParam Long id
     ) {
+        if (shUserId.isEmpty()) {
+            return R.fail(ErrorMsg.COOKIE_ERROR);
+        }
         Order order = orderService.getOrder(id);
         if (order.getUserId().equals(Long.valueOf(shUserId)) ||
                 order.getIdleItem().getUserId().equals(Long.valueOf(shUserId))) {
@@ -86,11 +88,12 @@ public class OrderController {
      */
     @PostMapping("/update")
     public R updateOrder(
-            @CookieValue("shUserId")
-            @NotNull(message = "登录异常 请重新登录")
-            @NotEmpty(message = "登录异常 请重新登录") String shUserId,
+            @CookieValue(value = "shUserId", defaultValue = "") String shUserId,
             @RequestBody Order order
     ) {
+        if (shUserId.isEmpty()) {
+            return R.fail(ErrorMsg.COOKIE_ERROR);
+        }
         if (order.getPaymentStatus() != null && order.getPaymentStatus().equals((byte) 1)) {
             order.setPaymentTime(new Date());
         }
@@ -108,10 +111,11 @@ public class OrderController {
      */
     @GetMapping("/my")
     public R getMyOrder(
-            @CookieValue("shUserId")
-            @NotNull(message = "登录异常 请重新登录")
-            @NotEmpty(message = "登录异常 请重新登录") String shUserId
+            @CookieValue(value = "shUserId", defaultValue = "") String shUserId
     ) {
+        if (shUserId.isEmpty()) {
+            return R.fail(ErrorMsg.COOKIE_ERROR);
+        }
         return R.success(orderService.getMyOrder(Long.valueOf(shUserId)));
     }
 
@@ -123,10 +127,11 @@ public class OrderController {
      */
     @GetMapping("/my-sold")
     public R getMySoldIdle(
-            @CookieValue("shUserId")
-            @NotNull(message = "登录异常 请重新登录")
-            @NotEmpty(message = "登录异常 请重新登录") String shUserId
+            @CookieValue(value = "shUserId", defaultValue = "") String shUserId
     ) {
+        if (shUserId.isEmpty()) {
+            return R.fail(ErrorMsg.COOKIE_ERROR);
+        }
         return R.success(orderService.getMySoldIdle(Long.valueOf(shUserId)));
     }
 }

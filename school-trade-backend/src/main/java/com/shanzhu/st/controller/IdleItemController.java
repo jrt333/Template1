@@ -34,11 +34,12 @@ public class IdleItemController {
      */
     @PostMapping("add")
     public R addIdleItem(
-            @CookieValue("shUserId")
-            @NotNull(message = "登录异常 请重新登录")
-            @NotEmpty(message = "登录异常 请重新登录") String shUserId,
+            @CookieValue(value = "shUserId", defaultValue = "") String shUserId,
             @RequestBody IdleItem idleItem
     ) {
+        if (shUserId.isEmpty()) {
+            return R.fail(ErrorMsg.COOKIE_ERROR);
+        }
         idleItem.setUserId(Long.valueOf(shUserId));
         idleItem.setIdleStatus((byte) 1);
         idleItem.setReleaseTime(new Date());
@@ -67,10 +68,11 @@ public class IdleItemController {
      */
     @GetMapping("all")
     public R getAllIdleItem(
-            @CookieValue("shUserId")
-            @NotNull(message = "登录异常 请重新登录")
-            @NotEmpty(message = "登录异常 请重新登录") String shUserId
+            @CookieValue(value = "shUserId", defaultValue = "") String shUserId
     ) {
+        if (shUserId.isEmpty()) {
+            return R.fail(ErrorMsg.COOKIE_ERROR);
+        }
         return R.success(idleItemService.getAllIdelItem(Long.valueOf(shUserId)));
     }
 
@@ -133,11 +135,12 @@ public class IdleItemController {
      */
     @PostMapping("update")
     public R updateIdleItem(
-            @CookieValue("shUserId")
-            @NotNull(message = "登录异常 请重新登录")
-            @NotEmpty(message = "登录异常 请重新登录") String shUserId,
+            @CookieValue(value = "shUserId", defaultValue = "") String shUserId,
             @RequestBody IdleItem idleItem
     ) {
+        if (shUserId.isEmpty()) {
+            return R.fail(ErrorMsg.COOKIE_ERROR);
+        }
         idleItem.setUserId(Long.valueOf(shUserId));
         if (idleItemService.updateIdleItem(idleItem)) {
             return R.success();
