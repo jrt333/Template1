@@ -27,6 +27,7 @@ public enum ErrorMsg {
     MISSING_PARAMETER("缺少参数"),
     COOKIE_ERROR("请重新登录"),
     EMAIL_LOGIN_ERROR("登录失败 账号或密码错误"),
+    CODE_ERROR("验证码错误或已过期"),
     JSON_READ_ERROR("json参数解析错误"),
     FORM_NUMBER_ERROR("表单id错误"),
     REPEAT_COMMIT_ERROR("请勿重复提交"),

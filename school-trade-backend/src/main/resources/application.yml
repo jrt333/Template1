@@ -5,11 +5,24 @@
 
 #Spring相关配置
 spring:
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: sni034@aucklanduni.ac.nz
+    password: cotzwrypnriepbsh
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+      mail.smtp.starttls.required: true
+      mail.smtp.ssl.protocols: TLSv1.2
+    default-encoding: UTF-8
+
+
   #数据库配置
   datasource:
-    url: jdbc:mysql://localhost:3306/DB_School_trade?serverTimezone=UTC&characterEncoding=UTF-8&useSSL=false&serverTimezone=GMT&allowPublicKeyRetrieval=true&useSSL=false
-    username: bianjiawang
-    password: 12345678
+    url: jdbc:mysql://localhost:3306/db_school_trade?serverTimezone=UTC&characterEncoding=UTF-8&useSSL=false&serverTimezone=GMT&allowPublicKeyRetrieval=true&useSSL=false
+    username: root
+    password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
   #web文件限制配置
   servlet:
@@ -19,13 +32,14 @@ spring:
      max-request-size: 200MB
   #Json配置
   jackson:
-    time: GMT+8
+    time: GMT+13
     date-format: yyyy-MM-dd HH:mm:ss
+
 
 #文件路径
 baseUrl: http://localhost:8080
 #C:/exam/xxx/pic  注意这个文件夹路径最好不要有中文，容易出问题！！
-userFilePath: /Users/jiawang/saleProject/pic
+userFilePath: 'F:/留学/大三/第二学期/COMPSCI 399/Template1/pic'
 
 #Mybatis配置
 mybatis:

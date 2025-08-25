@@ -22,6 +22,13 @@ const api = {
             data: data
         });
     },
+    getEmailCode(query) {
+        return request({
+            url: '/user/code',
+            method: 'get',
+            params: query
+        });
+    },
     getUserInfo(query) {
         return request({
             url: '/user/info',

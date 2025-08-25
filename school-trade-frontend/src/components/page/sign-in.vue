@@ -11,9 +11,17 @@
                         <div class="el-icon-user-solid"></div>
                     </template>
                 </el-input>
-                <el-input placeholder="请输入帐号..." maxlength="11" v-model="userInfo.accountNumber" class="sign-in-input" clearable>
+                <el-input placeholder="请输入UPI..." maxlength="11" v-model="userInfo.accountNumber" class="sign-in-input" clearable>
                     <template slot="prepend">
                         <div class="el-icon-phone"></div>
+                    </template>
+                </el-input>
+                <el-input placeholder="请输入验证码..." v-model="emailCode" class="sign-in-input" clearable>
+                    <template slot="prepend">
+                        <div class="el-icon-message"></div>
+                    </template>
+                    <template slot="append">
+                        <el-button @click="sendCode" :disabled="codeBtnDisabled">{{codeBtnText}}</el-button>
                     </template>
                 </el-input>
                 <el-input placeholder="请输入密码..." show-password maxlength="16" v-model="userInfo.userPassword" class="sign-in-input" clearable>
@@ -42,6 +50,11 @@
         data(){
             return{
                 userPassword2:'',
+                emailCode:'',
+                codeBtnText:'点击获取',
+                codeBtnDisabled:false,
+                countdown:60,
+                timer:null,
                 userInfo:{
                     accountNumber:'',
                     userPassword:'',
@@ -53,13 +66,39 @@
             toLogin(){
                 this.$router.replace({path: '/login'});
             },
+            sendCode(){
+                if(!this.userInfo.accountNumber){
+                    this.$message.error('请先输入UPI！');
+                    return;
+                }
+                this.$api.getEmailCode({upi:this.userInfo.accountNumber}).then(res=>{
+                    if(res.status_code===1){
+                        this.$message.success('验证码已发送');
+                        this.codeBtnDisabled=true;
+                        this.codeBtnText=this.countdown+'s';
+                        this.timer=setInterval(()=>{
+                            this.countdown--;
+                            this.codeBtnText=this.countdown+'s';
+                            if(this.countdown<=0){
+                                clearInterval(this.timer);
+                                this.countdown=60;
+                                this.codeBtnText='点击获取';
+                                this.codeBtnDisabled=false;
+                            }
+                        },1000);
+                    }else{
+                        this.$message.error(res.msg);
+                    }
+                }).catch(()=>{
+                    this.$message.error('验证码发送失败');
+                });
+            },
             signIn(){
-                console.log(this.userInfo.nickname);
-                if(this.userInfo.accountNumber&&this.userInfo.userPassword&&this.userInfo.nickname){
+                if(this.userInfo.accountNumber&&this.userInfo.userPassword&&this.userInfo.nickname&&this.emailCode){
                     if(this.userInfo.userPassword!==this.userPassword2){
                         this.$message.error('两次输入的密码不相同！');
                     }else {
-                        this.$api.signIn(this.userInfo).then(res=>{
+                        this.$api.signIn({...this.userInfo,code:this.emailCode}).then(res=>{
                             if(res.status_code===1){
                                 this.$message({
                                     message: '注册成功！',
@@ -67,7 +106,7 @@
                                 });
                                 this.$router.replace({path: '/login'});
                             }else {
-                                this.$message.error('注册失败，用户已存！');
+                                this.$message.error(res.msg);
                             }
                         }).catch(e=>{
                             console.log(e);

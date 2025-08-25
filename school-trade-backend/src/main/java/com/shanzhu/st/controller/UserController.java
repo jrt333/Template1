@@ -3,6 +3,7 @@ package com.shanzhu.st.controller;
 import com.shanzhu.st.entity.User;
 import com.shanzhu.st.enums.ErrorMsg;
 import com.shanzhu.st.service.UserService;
+import com.shanzhu.st.service.EmailService;
 import com.shanzhu.st.vo.R;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,6 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
+import java.util.Map;
 
 /**
  * 用户相关 控制层
@@ -27,15 +29,28 @@ public class UserController {
     @Resource
     private UserService userService;
 
+    @Resource
+    private EmailService emailService;
+
 
     /**
      * 注册账号
      *
-     * @param user 用户信息
+     * @param map 用户信息
      * @return 结果
+     *
      */
     @PostMapping("sign-in")
-    public R signIn(@RequestBody User user) {
+    //public R signIn(@RequestBody User user) {
+    public R signIn(@RequestBody Map<String, String> map) {
+        User user = new User();
+        user.setAccountNumber(map.get("accountNumber"));
+        user.setUserPassword(map.get("userPassword"));
+        user.setNickname(map.get("nickname"));
+        String code = map.get("code");
+        if (!emailService.verifyCode(user.getAccountNumber(), code)) {
+            return R.fail(ErrorMsg.CODE_ERROR);
+        }
         user.setSignInTime(new Timestamp(System.currentTimeMillis()));
         if (user.getAvatar() == null || "".equals(user.getAvatar())) {
             user.setAvatar("https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png");
@@ -45,6 +60,24 @@ public class UserController {
         }
         return R.fail(ErrorMsg.REGISTER_ERROR);
     }
+
+    /**
+     * 发送验证码
+     *
+     * @param upi 学生UPI
+     * @return 结果
+     */
+    @GetMapping("code")
+    public R sendCode(@RequestParam("upi") String upi) {
+        try {
+            emailService.sendCode(upi);
+            return R.success();
+        } catch (Exception e) {
+            return R.fail(ErrorMsg.EMAIL_SEND_ERROR);
+        }
+    }
+
+
 
     /**
      * 登录
