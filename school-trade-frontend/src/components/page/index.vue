@@ -23,7 +23,7 @@
               </el-menu>-->
             <div style="margin: 0 20px;">
                 <el-row :gutter="30">
-                    <el-col :span="6" v-for="(idle,index) in idleList">
+                    <el-col :span="6" v-for="(idle,index) in idleList" :key="idle.id || index">
                         <div class="idle-card" @click="toDetails(idle)">
                             <el-image
                                     style="width: 100%; height: 160px"
@@ -47,14 +47,14 @@
                            <!-- <div class="idle-time">{{idle.timeStr}}</div>-->
                             <div class="user-info">
                                 <el-image
-                                        style="width: 30px; height: 30px"
-                                        :src="idle.user.avatar"
-                                        fit="contain">
+                                    style="width: 30px; height: 30px"
+                                    :src="(idle.user && idle.user.avatar) || defaultAvatar"
+                                    fit="contain">
                                     <div slot="error" class="image-slot">
                                         <i class="el-icon-picture-outline">无图</i>
                                     </div>
                                 </el-image>
-                                <div class="user-nickname">{{idle.user.nickname}}</div>
+                                <div class="user-nickname">{{ (idle.user && idle.user.nickname) || '匿名用户' }}</div>
                             </div>
                         </div>
                     </el-col>
@@ -83,95 +83,100 @@
 
     export default {
         name: "index",
-        components: {
-            AppHead,
-            AppBody,
-            AppFoot
-        },
+        components: { AppHead, AppBody, AppFoot },
         data() {
             return {
-                labelName: '0',
+                labelName: '0',         // el-tabs 的 name 是字符串，保持字符串
                 idleList: [],
                 currentPage: 1,
-                totalItem:1
+                totalItem: 1,
+                defaultAvatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png'
             };
         },
         created() {
-            this.findIdleTiem(1)
+            this.syncFromRoute();
+            this.findIdleTiem(this.currentPage);
         },
-        watch:{
-            $route(to,from){
-                this.labelName=to.query.labelName;
-                let val=parseInt(to.query.page)?parseInt(to.query.page):1;
-                // let totalPage=parseInt(this.totalItem/8)+1;
-                // val=parseInt(val%totalPage);
-                // val=val===0?totalPage:val;
-                this.currentPage=parseInt(to.query.page)?parseInt(to.query.page):1;
-                this.findIdleTiem(val);
+        watch: {
+            '$route.query': {
+                handler() {
+                    this.syncFromRoute();
+                    this.findIdleTiem(this.currentPage);
+                },
+                deep: true
             }
         },
         methods: {
-            findIdleTiem(page){
-                const loading = this.$loading({
-                    lock: true,
-                    text: '加载数据中',
-                    spinner: 'el-icon-loading',
+            // 读取路由并做类型归一
+            syncFromRoute() {
+                this.currentPage = Number(this.$route.query.page || 1);
+                // 路由里没带 labelName 时，回到“全部”
+                this.labelName = (this.$route.query.labelName !== undefined)
+                    ? String(this.$route.query.labelName)
+                    : '0';
+            },
+
+            findIdleTiem: function (page) {
+                var loading = this.$loading({
+                    lock: true, text: '加载数据中', spinner: 'el-icon-loading',
                     background: 'rgba(0, 0, 0, 0)'
                 });
-                if(this.labelName>0){
-                    this.$api.findIdleTiemByLable({
-                        idleLabel:this.labelName,
-                        page: page,
-                        nums: 8
-                    }).then(res => {
-                        console.log(res);
-                        let list = res.data.list;
-                        for (let i = 0; i < list.length; i++) {
-                            list[i].timeStr = list[i].releaseTime.substring(0, 10) + " " + list[i].releaseTime.substring(11, 19);
-                            let pictureList = JSON.parse(list[i].pictureList);
-                            list[i].imgUrl = pictureList.length > 0 ? pictureList[0] : '';
-                        }
-                        this.idleList = list;
-                        this.totalItem=res.data.count;
-                        console.log(this.totalItem);
-                    }).catch(e => {
-                        console.log(e)
-                    }).finally(()=>{
-                        loading.close();
-                    })
-                }else{
-                    this.$api.findIdleTiem({
-                        page: page,
-                        nums: 8
-                    }).then(res => {
-                        console.log(res);
-                        let list = res.data.list;
-                        for (let i = 0; i < list.length; i++) {
-                            list[i].timeStr = list[i].releaseTime.substring(0, 10) + " " + list[i].releaseTime.substring(11, 19);
-                            let pictureList = JSON.parse(list[i].pictureList);
-                            list[i].imgUrl = pictureList.length > 0 ? pictureList[0] : '';
-                        }
-                        this.idleList = list;
-                        this.totalItem=res.data.count;
-                        console.log(this.totalItem);
-                    }).catch(e => {
-                        console.log(e)
-                    }).finally(()=>{
-                        loading.close();
-                    })
-                }
+
+                var labelNum = Number(this.labelName || 0);
+                var isAll = !(isFinite(labelNum) && labelNum > 0);
+
+                var api = isAll ? this.$api.findIdleTiem : this.$api.findIdleTiemByLable;
+                var params = isAll ? { page: page, nums: 8 } : { idleLabel: labelNum, page: page, nums: 8 };
+
+                var _this = this;
+                api(params).then(function (res) {
+                    // 兼容不同封装：有的拦截器返回的是 resp，有的是 resp.data
+                    var data = (res && res.data) ? res.data : res;
+                    var list = (data && Array.isArray(data.list)) ? data.list : [];
+
+                    _this.idleList = list.map(function (it) {
+                        var pictures = [];
+                        try {
+                            pictures = JSON.parse(it.pictureList || '[]');
+                        } catch (e) {}
+                        var timeStr = it.releaseTime
+                            ? it.releaseTime.substring(0, 10) + " " + it.releaseTime.substring(11, 19)
+                            : '';
+
+                        // 不用展开语法，避免转译问题
+                        var item = Object.assign({}, it);
+                        item.timeStr = timeStr;
+                        item.imgUrl = pictures[0] || '';
+                        item.user = it.user || {}; // 兜底，避免模板空指针
+                        return item;
+                    });
+
+                    _this.totalItem = Number((data && data.count) || 0);
+                }).catch(function (e) {
+                    console.log(e);
+                    _this.idleList = [];
+                    _this.totalItem = 0;
+                }).finally(function () {
+                    loading.close();
+                });
             },
-            handleClick(tab, event) {
-                // console.log(tab,event);
-                console.log(this.labelName);
-                this.$router.replace({query: {page: 1,labelName:this.labelName}});
+
+
+            // 切换标签：不要把“全部”写成 labelName=0
+            handleClick() {
+                const q = { page: 1 };
+                if (Number(this.labelName) > 0) q.labelName = this.labelName;
+                this.$router.replace({ query: q });
             },
+
             handleCurrentChange(val) {
-                console.log(`当前页: ${val}`);
-                this.$router.replace({query: {page: val,labelName:this.labelName}});
+                const q = { page: val };
+                if (Number(this.labelName) > 0) q.labelName = this.labelName;
+                this.$router.replace({ query: q });
             },
+
             toDetails(idle) {
-                this.$router.push({path: '/details', query: {id: idle.id}});
+                this.$router.push({ path: '/details', query: { id: idle.id } });
             }
         }
     }
